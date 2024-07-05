@@ -1,0 +1,17 @@
+services:
+  c2v:
+    image: manjieqi/claude2vertex
+    container_name: c2v
+    # ports:
+    #   - 5000:5000
+    volumes:
+      - ./.env:/app/.env
+      - ./auth.json:/app/auth/auth.json
+    command: python main.py
+    restart: unless-stopped
+    networks:
+      - nginx
+
+networks:
+  nginx:
+    external: true
