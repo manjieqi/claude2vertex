@@ -13,6 +13,9 @@ auth.json文件需从GCP获取
 # 创建名为nginx的Docker网络
 sudo docker network create nginx
 
+# 构建镜像(可选，需修改compose文件中对应镜像)
+sudo docker build -t claude2vertex ./build
+
 # 启动Docker容器
 sudo docker compose up -d
 ```
