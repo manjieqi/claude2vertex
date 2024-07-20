@@ -3,6 +3,12 @@ name: Build and publish Docker image
 on:
   workflow_dispatch:
 
+env:
+  GHCR_REGISTRY: ghcr.io
+  DOCKERHUB_REGISTRY: docker.io
+  GHCR_IMAGE_NAME: ${{ github.repository_owner }}/claude2vertex
+  DOCKERHUB_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/claude2vertex
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -20,12 +26,24 @@ jobs:
       name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
+        registry: ${{ env.DOCKERHUB_REGISTRY }}
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+    -
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.GHCR_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - 
       name: Build and push
       uses: docker/build-push-action@v5
       with:
         context: ./build
         push: true
-        tags: manjieqi/claude2vertex:latest
+        tags: |
+          ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:${{ github.sha }}
+          ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:latest
+          ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_IMAGE_NAME }}:${{ github.sha }}
+          ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_IMAGE_NAME }}:latest
