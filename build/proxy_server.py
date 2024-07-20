@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import random
 
 from typing import Optional
 from anthropic import AnthropicVertex
@@ -34,11 +35,11 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(get_base_path(), 'au
 hostaddr = '0.0.0.0' if is_docker else os.getenv('HOST', '127.0.0.1')
 lsnport = int(os.getenv('PORT', 5000))
 project_id = os.getenv('PROJECT_ID')
-region = os.getenv('REGION')
+regions = os.getenv('REGION', '').split(',')
 password = os.getenv('PASSWORD')
 
-# VertexAI 配置
-vertex_client = AnthropicVertex(project_id=project_id, region=region)
+# 创建全局 AnthropicVertex 实例
+vertex_client = AnthropicVertex(project_id=project_id, region=regions[0] if regions else None)
 
 # CORS 配置
 app.add_middleware(
@@ -76,8 +77,10 @@ async def proxy_request(request: Request, x_api_key: Optional[str] = Header(None
     # 获取原始请求数据
     data = await request.json()
     
-#    print("Original request:")
-#    print(data)
+    # 随机选择一个区域并更新 vertex_client
+    if regions:
+        new_region = random.choice(regions)
+        vertex_client.region = new_region
 
     # 准备发送到 VertexAI 的请求
     try:
@@ -93,10 +96,6 @@ async def proxy_request(request: Request, x_api_key: Optional[str] = Header(None
                 # 直接复制其他所有参数
                 vertex_request[key] = value
                 
-        # 输出处理后的请求
-#        print("Processed request:")
-#        print(json.dumps(vertex_request, indent=2))
-
         # 发送请求到 VertexAI
         # 检查是否为流式请求
         if vertex_request.get('stream', False):
@@ -104,13 +103,11 @@ async def proxy_request(request: Request, x_api_key: Optional[str] = Header(None
                 yield 'event: ping\ndata: {"type": "ping"}\n\n'
                 for chunk in vertex_client.messages.create(**vertex_request):
                     response = f"event: {chunk.type}\ndata: {json.dumps(chunk.model_dump())}\n\n"
-#                    print(f"{response}")
                     yield response
 
             return StreamingResponse(generate(), media_type='text/event-stream', headers={'X-Accel-Buffering': 'no'})
         else:
             response = vertex_client.messages.create(**vertex_request)
-#            print(f"{response}")
             return JSONResponse(content=response.model_dump(), status_code=200)
 
     except Exception as e:
