@@ -9,7 +9,8 @@ on:
 env:
   GHCR_REGISTRY: ghcr.io
   DOCKERHUB_REGISTRY: docker.io
-  IMAGE_NAME: ${{ github.repository_owner }}/claude2vertex
+  GHCR_IMAGE_NAME: ${{ github.repository_owner }}/claude2vertex
+  DOCKERHUB_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/claude2vertex
 
 jobs:
   build-and-push:
@@ -47,8 +48,8 @@ jobs:
       uses: docker/metadata-action@v4
       with:
         images: |
-          ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}
-          ${{ env.DOCKERHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
+          ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}
+          ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_IMAGE_NAME }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
