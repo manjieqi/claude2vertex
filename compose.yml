@@ -6,7 +6,8 @@ services:
     #   - 5000:5000
     volumes:
       - ./.env:/app/.env
-      - ./auth.json:/app/auth/auth.json
+      - ./auth:/app/auth
+      - ./model_mapping.json:/app/model_mapping.json
     command: python main.py
     restart: unless-stopped
     networks:

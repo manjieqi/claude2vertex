@@ -3,7 +3,7 @@
 
 **注意：**
 
-auth.json文件需从GCP获取
+auth内json文件需从GCP获取，命名为项目名
 
 .env文件需完善
 
